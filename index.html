@@ -3,52 +3,151 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="robots" content="noindex, nofollow">
   <title>Project Portal — Sign in</title>
   <style>
+    :root {
+      --bg: #f4f6f8; --card: #fff; --ink: #1a1d21; --muted: #667;
+      --line: #ccd2d9; --accent: #0a7bff; --flag: #b45309; --flag-bg: #fffbeb;
+      --mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    * { box-sizing: border-box; }
     body {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-      background: #f4f6f8;
-      display: flex; justify-content: center; align-items: center;
-      min-height: 100vh; margin: 0;
+      background: var(--bg); color: var(--ink);
+      display: flex; flex-direction: column; align-items: center;
+      min-height: 100vh; margin: 0; padding: 32px 16px;
     }
     .card {
-      background: #fff; padding: 40px 36px; border-radius: 10px;
-      box-shadow: 0 6px 24px rgba(0,0,0,.08); width: 360px;
+      background: var(--card); padding: 40px 36px; border-radius: 10px;
+      box-shadow: 0 6px 24px rgba(0,0,0,.08); width: 100%; max-width: 360px;
     }
     h1 { font-size: 20px; margin: 0 0 6px; }
-    p  { color: #667; font-size: 13px; margin: 0 0 24px; }
-    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; color: #333; }
+    .sub { color: var(--muted); font-size: 13px; margin: 0 0 24px; }
+    label { display: block; font-size: 13px; font-weight: 600; margin-bottom: 6px; }
     input[type=text], input[type=password] {
-      width: 100%; box-sizing: border-box; padding: 10px 12px;
-      border: 1px solid #ccd2d9; border-radius: 6px; font-size: 14px; margin-bottom: 18px;
+      width: 100%; padding: 10px 12px; border: 1px solid var(--line);
+      border-radius: 6px; font-size: 14px; margin-bottom: 18px;
     }
-    input[type=text]:focus, input[type=password]:focus {
-      outline: none; border-color: #0a7bff; box-shadow: 0 0 0 3px rgba(10,123,255,.15);
+    input:focus {
+      outline: none; border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(10,123,255,.15);
     }
     button {
-      width: 100%; padding: 11px; background: #0a7bff; color: #fff;
+      width: 100%; padding: 11px; background: var(--accent); color: #fff;
       border: 0; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer;
     }
+
+    /* Evidence panel — laid out to be screenshotted straight into a report. */
+    .evidence {
+      background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+      width: 100%; max-width: 680px; margin-top: 28px; overflow: hidden;
+    }
+    .evidence header {
+      background: var(--flag-bg); border-bottom: 1px solid var(--line);
+      padding: 12px 18px; font-size: 13px; font-weight: 700; color: var(--flag);
+    }
+    .evidence header span { font-weight: 400; display: block; margin-top: 3px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { text-align: left; padding: 9px 18px; border-bottom: 1px solid #eef1f4; vertical-align: top; }
+    th { width: 148px; color: var(--muted); font-weight: 600; white-space: nowrap; }
+    td { font-family: var(--mono); word-break: break-all; white-space: pre-wrap; }
+    tr:last-child th, tr:last-child td { border-bottom: 0; }
+    .none { color: var(--muted); font-family: inherit; font-style: italic; }
+    .captured, .captured th { background: #f0fdf4; }
   </style>
 </head>
 <body>
   <div class="card">
     <h1>Project Portal</h1>
-    <p>Sign in to continue to your workspace.</p>
-    <form id="login" action="javascript:void(0)" method="post">
+    <p class="sub">Sign in to continue to your workspace.</p>
+    <form id="login" autocomplete="off">
       <label for="username">Email or username</label>
-      <input type="text" id="username" name="username" autocomplete="username">
+      <input type="text" id="username" name="username">
       <label for="password">Password</label>
-      <input type="password" id="password" name="password" autocomplete="current-password">
+      <input type="password" id="password" name="password">
       <button type="submit">Sign in</button>
     </form>
   </div>
+
+  <div class="evidence">
+    <header>
+      Proof-of-concept landing page — authorised security testing
+      <span>Nothing here is transmitted or stored. Values shown below stay in this browser.</span>
+    </header>
+    <table><tbody id="rows"></tbody></table>
+  </div>
+
   <script>
-    // PoC page only — submit does nothing, no data leaves this page.
-    document.getElementById('login').addEventListener('submit', function (e) {
-      e.preventDefault();
-      document.querySelector('button').textContent = 'This is a security test page — nothing sent';
-    });
+    (function () {
+      var q = function (s) { return document.querySelector(s); };
+      var rows = q('#rows');
+
+      function row(label, value, empty, cls) {
+        var tr = document.createElement('tr');
+        if (cls) tr.className = cls;
+        var th = document.createElement('th');
+        th.textContent = label;
+        var td = document.createElement('td');
+        if (value) { td.textContent = value; }
+        else { td.textContent = empty; td.className = 'none'; }
+        tr.appendChild(th); tr.appendChild(td);
+        rows.appendChild(tr);
+        return tr;
+      }
+
+      // Short id so a screenshot ties back to a specific run.
+      var evid = (Date.now().toString(36) + Math.random().toString(36).slice(2, 6)).toUpperCase();
+
+      row('Evidence ID', evid);
+      row('Landed at', new Date().toISOString());
+      row('Landing URL', location.href);
+
+      // The referring page is the strongest single artefact for a redirect
+      // finding, but a cross-origin 302 often suppresses it via the origin's
+      // Referrer-Policy. Say so plainly rather than showing a blank.
+      row('Referrer', document.referrer,
+          'not sent — the origin’s Referrer-Policy suppressed it (this does not invalidate the finding)');
+
+      var params = [];
+      new URLSearchParams(location.search).forEach(function (v, k) {
+        if (k !== 'c') params.push(k + ' = ' + v);
+      });
+      row('Query parameters', params.join('\n'), 'none');
+
+      // Relevant to framed-login and reverse-tabnabbing findings.
+      var ctx = [];
+      if (window.top !== window.self) ctx.push('rendered inside an iframe');
+      if (window.opener) ctx.push('window.opener is set (reverse tabnabbing reachable)');
+      row('Context', ctx.join('\n'), 'top-level document, no opener');
+
+      var credRow = null;
+      q('#login').addEventListener('submit', function (e) {
+        e.preventDefault();
+        var u = q('#username').value, p = q('#password').value;
+        if (!credRow) credRow = row('Form captured', ' ', '', 'captured');
+        var td = credRow.lastChild;
+        td.className = '';
+        td.textContent =
+          'username = ' + (u || '(empty)') + '\n' +
+          'password = ' + (p ? '•'.repeat(p.length) + '  (' + p.length + ' chars)' : '(empty)');
+        q('#login button').textContent = 'Captured — see evidence panel';
+        credRow.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+
+      // Optional out-of-band record: ?c=<host> pings an OAST collector
+      // (Interactsh and friends) so a landing is logged even when nobody is
+      // watching the screen. Hostname-only and https-only, so a hosted copy
+      // of this page cannot be pointed at an arbitrary URL.
+      var c = new URLSearchParams(location.search).get('c');
+      if (c && /^[a-z0-9]([a-z0-9.-]{1,251}[a-z0-9])?$/i.test(c)) {
+        var beacon = 'https://' + c + '/landed'
+                   + '?id=' + encodeURIComponent(evid)
+                   + '&ref=' + encodeURIComponent(document.referrer || 'none');
+        new Image().src = beacon;
+        row('OAST beacon', beacon);
+      }
+    })();
   </script>
 </body>
 </html>
