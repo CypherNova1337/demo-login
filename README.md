@@ -18,10 +18,18 @@ ended up.
 There is no server and no build. The point is to have a URL you can paste into
 a parameter, so it runs from anywhere that serves a file:
 
-* **GitHub Pages** — enable Pages on this repo, use `https://<user>.github.io/demo-login/`
-* **A gist** — raw gist URLs work, though they serve as `text/plain` on
-  gist.githubusercontent.com; for a rendered page prefer Pages or any static host
+* **GitHub Pages** — a workflow in this repo publishes it on every push to
+  `main`. One-time setup: **Settings → Pages → Build and deployment → Source:
+  GitHub Actions**. The page then lives at `https://<user>.github.io/demo-login/`
 * **Locally** — `python3 -m http.server` while you work
+* **Any static host** — it is one file with no dependencies
+
+A gist will not work for this: `gist.githubusercontent.com` serves raw files as
+`text/plain`, so the browser shows the markup instead of rendering the page.
+
+Note that a Pages site is public. The page carries `noindex` so it stays out of
+search results, but treat the URL as reachable by anyone and keep client names
+out of it.
 
 ## What it shows
 
